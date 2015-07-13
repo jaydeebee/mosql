@@ -1,30 +1,6 @@
 # MoSQL: a MongoDB → SQL streaming translator
 
-At Stripe, we love MongoDB. We love the flexibility it gives us in
-changing data schemas as we grow and learn, and we love its
-operational properties. We love replsets. We love the uniform query
-language that doesn't require generating and parsing strings, tracking
-placeholder parameters, or any of that nonsense.
-
-The thing is, we also love SQL. We love the ease of doing ad-hoc data
-analysis over small-to-mid-size datasets in SQL. We love doing JOINs
-to pull together reports summarizing properties across multiple
-datasets. We love the fact that virtually every employee we hire
-already knows SQL and is comfortable using it to ask and answer
-questions about data.
-
-So, we thought, why can't we have the best of both worlds? Thus:
-MoSQL.
-
-# MoSQL: Put Mo' SQL in your NoSQL
-
-![MoSQL](https://stripe.com/img/blog/posts/mosql/mosql.png)
-
-MoSQL imports the contents of your MongoDB database cluster into a
-PostgreSQL instance, using an oplog tailer to keep the SQL mirror live
-up-to-date. This lets you run production services against a MongoDB
-database, and then run offline analytics or reporting using the full
-power of SQL.
+Please take a look at the fork to know more about the intend. Here I have ported the same to make it work with MySQL.
 
 ## Installation
 
@@ -117,6 +93,7 @@ Once you have a collection map. MoSQL usage is easy. The basic form
 is:
 
     mosql [-c collections.yml] [--sql postgres://sql-server/sql-db] [--mongo mongodb://mongo-uri]
+    mosql [-c collections.yml] [--sql mysql2://sql-server/sql-db] [--mongo mongodb://mongo-uri]
 
 By default, `mosql` connects to both PostgreSQL and MongoDB instances
 running on default ports on localhost without authentication. You can
@@ -259,4 +236,5 @@ rake test
 You can also point the suite at a different target via environment
 variables; See `test/functional/_lib.rb` for more information.
 
+[github]: https://github.com/maheshm/mosql
 [github]: https://github.com/stripe/mosql

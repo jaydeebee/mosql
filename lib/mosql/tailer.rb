@@ -4,20 +4,21 @@ module MoSQL
       if !db.table_exists?(tablename)
         db.create_table(tablename) do
           column :service,     'TEXT'
-          column :timestamp,   'INTEGER'
-          column :position,    'BYTEA'
+          column :timestamp,   'TIMESTAMP'
+          column :position,    'BLOB'
           primary_key [:service]
         end
       else
+        # TODO: This cannot go in production. This is throwing error if the column already exist.
         # Try to do seamless upgrades from before-tokumx times
         # It will raise an exception in this in most cases,
         # but there isn't a nice way I found to check if column
         # exists.
-        begin
-          db.add_column(tablename, :position, 'BYTEA')
-        rescue Sequel::DatabaseError => e
-          raise unless MoSQL::SQLAdapter.duplicate_column_error?(e)
-        end
+        #begin
+        #  db.add_column(tablename, :position, 'BYTEA')
+        #rescue Sequel::DatabaseError => e
+        #  raise unless MoSQL::SQLAdapter.duplicate_column_error?(e)
+        #end
       end
 
       db[tablename.to_sym]

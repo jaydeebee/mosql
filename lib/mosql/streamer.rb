@@ -49,9 +49,10 @@ module MoSQL
     end
 
     def bulk_upsert(table, ns, items)
-      begin
-        @schema.copy_data(table.db, ns, items)
-      rescue Sequel::DatabaseError => e
+      #TODO: MySQL will not work with this. Need to be work with both MySQL and PG
+      #begin
+      #  @schema.copy_data(table.db, ns, items)
+      #rescue Sequel::DatabaseError => e
         log.debug("Bulk insert error (#{e}), attempting invidual upserts...")
         cols = @schema.all_columns(@schema.find_ns(ns))
         items.each do |it|
@@ -61,7 +62,7 @@ module MoSQL
             @sql.upsert!(table, @schema.primary_sql_key_for_ns(ns), h)
           end
         end
-      end
+      #end
     end
 
     def with_retries(tries=10)
