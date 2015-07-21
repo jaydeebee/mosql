@@ -3,7 +3,7 @@ module MoSQL
     def self.create_table(db, tablename)
       if !db.table_exists?(tablename)
         db.create_table(tablename) do
-          column :service,     'TEXT'
+          column :service,     String
           column :timestamp,   'TIMESTAMP'
           column :position,    'BLOB'
           primary_key [:service]
