@@ -287,20 +287,25 @@ module MoSQL
       all_columns(schema, true)
     end
 
-    def copy_data(db, ns, objs)
+    def copy_data(table, ns, objs)
+      db = table.db
       schema = find_ns!(ns)
-      db.synchronize do |pg|
-        sql = "COPY \"#{schema[:meta][:table]}\" " +
-          "(#{all_columns_for_copy(schema).map {|c| "\"#{c}\""}.join(",")}) FROM STDIN"
-        pg.execute(sql)
-        objs.each do |o|
-          pg.put_copy_data(transform_to_copy(ns, o, schema) + "\n")
-        end
-        pg.put_copy_end
-        begin
-          pg.get_result.check
-        rescue PGError => e
-          db.send(:raise_error, e)
+      db.synchronize do |adaptor|
+        if db.adapter_scheme == :postgres
+          sql = "COPY \"#{schema[:meta][:table]}\" " +
+                "(#{all_columns_for_copy(schema).map {|c| "\"#{c}\""}.join(",")}) FROM STDIN"
+          adaptor.execute(sql)
+          objs.each do |o|
+            adaptor.put_copy_data(transform_to_copy(ns, o, schema) + "\n")
+          end
+          adaptor.put_copy_end
+          begin
+            adaptor.get_result.check
+          rescue PGError => e
+            db.send(:raise_error, e)
+          end
+        else
+          table.import(all_columns_for_copy(schema), objs)
         end
       end
     end
