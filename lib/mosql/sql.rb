@@ -70,13 +70,23 @@ module MoSQL
       end
     end
 
-    def self.duplicate_key_error?(e)
-      # c.f. http://www.postgresql.org/docs/9.2/static/errcodes-appendix.html
-      # for the list of error codes.
-      #
-      # No thanks to Sequel and pg for making it easy to figure out
-      # how to get at this error code....
-      e.wrapped_exception.result.error_field(PG::Result::PG_DIAG_SQLSTATE) == "23505"
+    def self.duplicate_key_error?(e, adapter_scheme)
+      if adapter_scheme == :postgres
+        # c.f. http://www.postgresql.org/docs/9.2/static/errcodes-appendix.html
+        # for the list of error codes.
+        #
+        # No thanks to Sequel and pg for making it easy to figure out
+        # how to get at this error code....
+        e.wrapped_exception.result.error_field(PG::Result::PG_DIAG_SQLSTATE) == "23505"
+      elsif [:mysql, :mysql2].include? adapter_scheme
+        # Using a string comparison of the error message in the same way as Sequel determines MySQL errors
+        # https://github.com/jeremyevans/sequel/blob/master/lib/sequel/adapters/mysql.rb#L191
+        /duplicate entry .* for key/.match(e.message.downcase)
+      else
+        # TODO this needs to be tracked down for the particular adaptor's duplicate key error,
+        # but the mysql solution might be a good approximation
+        /duplicate entry .* for key/.match(e.message.downcase)
+      end
     end
 
     def self.duplicate_column_error?(e)
