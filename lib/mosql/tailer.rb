@@ -28,7 +28,7 @@ module MoSQL
       super(backends, type, opts)
       @table   = table
       @service = opts[:service] || "mosql"
-      @adapter_scheme
+      @adapter_scheme = adapter_scheme
     end
 
     def read_state
