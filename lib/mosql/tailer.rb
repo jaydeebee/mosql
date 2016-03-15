@@ -3,7 +3,7 @@ module MoSQL
     def self.create_table(db, tablename)
       if !db.table_exists?(tablename)
         db.create_table(tablename) do
-          column :service,     'TEXT'
+          column :service,     String
           column :timestamp,   'TIMESTAMP'
           column :position,    'BLOB'
           primary_key [:service]
@@ -24,10 +24,11 @@ module MoSQL
       db[tablename.to_sym]
     end
 
-    def initialize(backends, type, table, opts)
+    def initialize(backends, type, table, opts, adapter_scheme)
       super(backends, type, opts)
       @table   = table
       @service = opts[:service] || "mosql"
+      @adapter_scheme = adapter_scheme
     end
 
     def read_state
@@ -37,7 +38,7 @@ module MoSQL
       # If latest operation before or at timestamp if no position 
       # exists, use timestamp in database to guess what it could be.
       result = {}
-      result['time'] = Time.at(row.fetch(:timestamp))
+      result['time'] = Time.now #Time.at(row.fetch(:timestamp))
       if row[:position]
         result['position'] = from_blob(row[:position])
       else
@@ -59,7 +60,7 @@ module MoSQL
         begin
           @table.insert(data)
         rescue Sequel::DatabaseError => e
-          raise unless MoSQL::SQLAdapter.duplicate_key_error?(e)
+          raise unless MoSQL::SQLAdapter.duplicate_key_error?(e, @adapter_scheme)
         end
         @did_insert = true
       end

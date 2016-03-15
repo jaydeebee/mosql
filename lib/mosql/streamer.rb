@@ -39,7 +39,7 @@ module MoSQL
         yield
       rescue Sequel::DatabaseError => e
         wrapped = e.wrapped_exception
-        if wrapped.result && options[:unsafe]
+        if @sql.db.adapter_scheme == :postgres && wrapped.result && options[:unsafe]
           log.warn("Ignoring row (#{obj.inspect}): #{e}")
         else
           log.error("Error processing #{obj.inspect} for #{ns}.")
@@ -49,10 +49,9 @@ module MoSQL
     end
 
     def bulk_upsert(table, ns, items)
-      #TODO: MySQL will not work with this. Need to be work with both MySQL and PG
-      #begin
-      #  @schema.copy_data(table.db, ns, items)
-      #rescue Sequel::DatabaseError => e
+      begin
+        @schema.copy_data(table, ns, items)
+      rescue Sequel::DatabaseError => e
         log.debug("Bulk insert error (), attempting invidual upserts...")
         cols = @schema.all_columns(@schema.find_ns(ns))
         items.each do |it|
@@ -62,7 +61,7 @@ module MoSQL
             @sql.upsert!(table, @schema.primary_sql_key_for_ns(ns), h)
           end
         end
-      #end
+      end
     end
 
     def with_retries(tries=10)
